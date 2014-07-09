@@ -14,7 +14,7 @@ Baahp.Play.create = function () {
     this.player2 = new Kiwi.Group(this); //contains all the pieces belonging to Player2.
     this.blocks = new Kiwi.Group(this); //contains all the blocks that players can interact with.
 
-
+    this.currentPlayer = this.player1;
 
     this.blocks.addChild(new Kiwi.GameObjects.StaticImage(this, this.textures.block, 96, 64));
     this.blocks.addChild(new Kiwi.GameObjects.StaticImage(this, this.textures.block, 96, 128));
@@ -33,31 +33,8 @@ Baahp.Play.create = function () {
 };
 
 Baahp.Play.update = function () {
-    this.mouseHandler();
+    this.currentPlayer.update();
 };
-
-Baahp.Play.mouseHandler = function () {
-    if (this.mouse.justPressed(20)) {
-        var selectedSquare = GridMovement.prototype.getGridSquare(this.mouse.x, this.mouse.y);
-        if (selectedSquare !== null) {
-            var unit = GridMovement.prototype.getObjectAt(selectedSquare);
-            if (unit === null) {
-                return;
-            }
-            if (unit instanceof Piece && this.player1.isTurn) {
-                if (unit !== this.player1.selectedPiece) {
-                    if (this.player1.selectedPiece !== null) {
-                        this.player1.selectedPiece.unselectPiece();
-                    }
-                    unit.selectPiece();
-                    this.player1.selectedPiece = unit;
-                }
-            }
-        }
-    }
-};
-
-
 
 var GridMovement = function (state, width, height, tWidth, tHeight, margin) {
 
@@ -143,6 +120,32 @@ var Player = function (state, name) {
     this.isTurn = true;
 
     this.selectedPiece = null; //The currently selected Piece.
+
+    Player.prototype.update = function () {
+        this.mouseHandler();
+    };
+
+    Player.prototype.mouseHandler = function () {
+        if (state.mouse.justPressed(20)) {
+            var selectedSquare = GridMovement.prototype.getGridSquare(state.mouse.x, state.mouse.y);
+            if (selectedSquare !== null) {
+                var unit = GridMovement.prototype.getObjectAt(selectedSquare);
+                if (unit === null) {
+                    return;
+                }
+                if (unit instanceof Piece && this.isTurn) {
+                    if (unit !== this.selectedPiece) {
+                        if (this.selectedPiece !== null) {
+                            this.selectedPiece.unselectPiece();
+                            this.selectedPiece = null;
+                        }
+                        unit.selectPiece();
+                        this.selectedPiece = unit;
+                    }
+                }
+            }
+        }
+    };
 };
 
 var Piece = function (state, x, y) {
