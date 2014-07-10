@@ -296,7 +296,7 @@ var Piece = function (state, player, x, y) {
     this.gridPosition = new GridSquare(x, y);
 
     this.player = player;
-    
+
     Kiwi.GameObjects.Sprite.call(this, state, state.textures['piece' + this.player.name], this.gridPosition.pixelX, this.gridPosition.pixelY);
 
     this.isSelected = false; //whether or not the Piece is selected.
@@ -329,7 +329,7 @@ var Piece = function (state, player, x, y) {
         return false;
     };
 
-    /*Attempts to kill the Piece with a block
+    /*Attempts to kill the Piece with a block, returns true if space can be taken by block
      */
     Piece.prototype.attemptKill = function (direction) {
         var pushSquare = this.gridPosition.getSquareFromDirection(direction);
@@ -340,11 +340,13 @@ var Piece = function (state, player, x, y) {
         var unit = GridMovement.prototype.getObjectAt(pushSquare);
         if (unit === null) {
             this.moveToSquare(pushSquare);
-            return false;
+            return true;
         }
         if (unit instanceof Block) {
             this.kill(direction, 'block');
             return true
+        } else {
+            return false;
         }
     };
 
@@ -355,6 +357,27 @@ var Piece = function (state, player, x, y) {
             if (unit === 'block') {
                 this.state.bloodSplatters.addChild(new Blood(this.state, this.gridPosition.x + 1, this.gridPosition.y - 1, 'w', 'up'));
                 this.state.bloodSplatters.addChild(new Blood(this.state, this.gridPosition.x + 1, this.gridPosition.y + 1, 'w', 'down'));
+            }
+        } else if (direction === 'w') {
+            this.state.bloodSplatters.addChild(new Blood(this.state, this.gridPosition.x, this.gridPosition.y - 1, 'w', 'up'));
+            this.state.bloodSplatters.addChild(new Blood(this.state, this.gridPosition.x, this.gridPosition.y + 1, 'w', 'down'));
+            if (unit === 'block') {
+                this.state.bloodSplatters.addChild(new Blood(this.state, this.gridPosition.x - 1, this.gridPosition.y - 1, 'e', 'up'));
+                this.state.bloodSplatters.addChild(new Blood(this.state, this.gridPosition.x - 1, this.gridPosition.y + 1, 'e', 'down'));
+            }
+        } else if (direction === 'n') {
+            this.state.bloodSplatters.addChild(new Blood(this.state, this.gridPosition.x - 1, this.gridPosition.y, 'n', 'left'));
+            this.state.bloodSplatters.addChild(new Blood(this.state, this.gridPosition.x + 1, this.gridPosition.y, 'n', 'right'));
+            if (unit === 'block') {
+                this.state.bloodSplatters.addChild(new Blood(this.state, this.gridPosition.x - 1, this.gridPosition.y + 1, 's', 'left'));
+                this.state.bloodSplatters.addChild(new Blood(this.state, this.gridPosition.x + 1, this.gridPosition.y + 1, 's', 'right'));
+            }
+        } else if (direction === 's') {
+            this.state.bloodSplatters.addChild(new Blood(this.state, this.gridPosition.x - 1, this.gridPosition.y, 's', 'left'));
+            this.state.bloodSplatters.addChild(new Blood(this.state, this.gridPosition.x + 1, this.gridPosition.y, 's', 'right'));
+            if (unit === 'block') {
+                this.state.bloodSplatters.addChild(new Blood(this.state, this.gridPosition.x - 1, this.gridPosition.y + 1, 'n', 'left'));
+                this.state.bloodSplatters.addChild(new Blood(this.state, this.gridPosition.x + 1, this.gridPosition.y + 1, 'n', 'right'));
             }
         }
         this.destroy();
@@ -387,7 +410,9 @@ var Block = function (state, x, y) {
                 if (unit.player === this.state.currentPlayer) {
                     return false;
                 } else {
-                    unit.attemptKill(direction);
+                    if (!unit.attemptKill(direction)) {
+                        return false;
+                    }
                 }
             }
         }
@@ -401,7 +426,6 @@ Kiwi.extend(Block, Kiwi.GameObjects.Sprite);
 
 var Blood = function (state, x, y, direction, vector) {
     this.gridPosition = new GridSquare(x, y);
-    console.log(x + ":" + y);
 
     Kiwi.GameObjects.Sprite.call(this, state, state.textures.blood, this.gridPosition.pixelX, this.gridPosition.pixelY);
 
@@ -409,6 +433,10 @@ var Blood = function (state, x, y, direction, vector) {
     this.animation.add('w up', [1], 0.1, false);
     this.animation.add('e down', [2], 0.1, false);
     this.animation.add('w down', [3], 0.1, false);
+    this.animation.add('s left', [4], 0.1, false);
+    this.animation.add('s right', [5], 0.1, false);
+    this.animation.add('n left', [6], 0.1, false);
+    this.animation.add('n right', [7], 0.1, false);
 
     this.animation.play(direction + " " + vector);
 
