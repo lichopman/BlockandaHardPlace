@@ -9,6 +9,8 @@ Baahp.Loading.preload = function () {
     this.addSpriteSheet('arenaTiles', 'Assets/Images/Tilesets/Background.png', 32, 32);
     this.addImage('piece1', 'Assets/Images/Piece1.png');
     this.addImage('piece1s', 'Assets/Images/Piece1s.png');
-    this.addImage('piece2', 'Assets/Images/Piece2.png')
+    this.addImage('piece2', 'Assets/Images/Piece2.png');
+    this.addImage('piece2s', 'Assets/Images/Piece2s.png');
     this.addImage('block', 'Assets/Images/Block.png');
+    this.addSpriteSheet('blood', 'Assets/Images/Tilesets/bloodtiles.png', 32, 32);
 };
