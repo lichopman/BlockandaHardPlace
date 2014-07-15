@@ -12,5 +12,5 @@ Baahp.Intro = new Kiwi.State('Intro');
 
 
 Baahp.Intro.create = function () {
-    game.states.switchState("Play");
+    game.states.switchState("Arena");
 }

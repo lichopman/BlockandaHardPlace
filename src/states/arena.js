@@ -1,14 +1,14 @@
 var Baahp = Baahp || {};
 
-Baahp.Play = new Kiwi.State('Play');
+Baahp.Arena = new Kiwi.State('Arena');
 
-Baahp.Play.create = function () {
+Baahp.Arena.create = function () {
 
     this.mouse = this.game.input.mouse;
 
-    this.arena = new Kiwi.GameObjects.Tilemap.TileMap(this, 'arena1', this.textures.arenaTiles);
-
-    this.gridMovement = new GridMovement(this, 288, 224, 32, 32, 32);
+    this.arena = new Kiwi.GameObjects.Tilemap.TileMap(this, 'arena2', this.textures.arenaTiles);
+    this.arenaScale = this.fitArena();
+    this.gridMovement = new GridMovement(this, this.arena.widthInPixels, this.arena.heightInPixels, this.arena.tileWidth, this.arena.tileHeight, 32, 32, 32, 32);
 
     this.player1 = new Player(this, '1'); //contains all the pieces belonging to Player1.
     this.player2 = new Player(this, '2'); //contains all the pieces belonging to Player2.
@@ -17,20 +17,14 @@ Baahp.Play.create = function () {
 
     this.currentPlayer = this.player1;
 
-    this.blocks.addChild(new Block(this, 2, 1));
-    this.blocks.addChild(new Block(this, 2, 3));
-    this.blocks.addChild(new Block(this, 4, 1));
-    this.blocks.addChild(new Block(this, 4, 3));
+    this.addUnits();
 
-    this.player1.addPiece(0, 1);
-    this.player1.addPiece(0, 3);
-    this.player1.addPiece(1, 2);
-
-    this.player2.addPiece(6, 1);
-    this.player2.addPiece(6, 3);
-    this.player2.addPiece(5, 2);
+    this.playerName = new Kiwi.HUD.Widget.TextField(this.game, "Player" + this.currentPlayer.name, 400, 0);
+    this.playerName.style.fontSize = "32px";
+    this.game.huds.defaultHUD.addWidget(this.playerName);
 
     this.addChild(this.arena.layers[0]);
+
 
     this.addChild(this.bloodSplatters);
     this.addChild(this.player1.pieces);
@@ -40,29 +34,66 @@ Baahp.Play.create = function () {
     this.player1.isTurn = true;
 };
 
-Baahp.Play.update = function () {
+Baahp.Arena.update = function () {
     Kiwi.State.prototype.update.call(this);
     this.currentPlayer.update();
 };
 
-Baahp.Play.switchPlayer = function () {
+Baahp.Arena.switchPlayer = function () {
     if (this.currentPlayer === this.player1) {
         this.currentPlayer = this.player2;
         this.player2.isTurn = true;
+        this.playerName.text = "Player2";
     } else {
         this.currentPlayer = this.player1;
         this.player1.isTurn = true;
+        this.playerName.text = "Player1";
     }
 };
 
-var GridMovement = function (state, width, height, tWidth, tHeight, margin) {
+Baahp.Arena.fitArena = function () {
+    var xScale = this.game.stage.width / this.arena.widthInPixels;
+    var yScale = this.game.stage.height / this.arena.heightInPixels;
+
+    if (xScale < yScale) {
+        this.transform.scaleX = xScale;
+        this.transform.scaleY = xScale;
+        return xScale;
+    } else {
+        this.transform.scaleX = yScale;
+        this.transform.scaleY = yScale;
+        return yScale;
+    }
+};
+
+Baahp.Arena.addUnits = function () {
+    var units = JSON.parse(this.game.fileStore.getFile("units2").data);
+    for (var x = 0; x < units.width; x++) {
+        for (y = 0; y < units.height; y++) {
+            var curGrid = units.units[(x + y*units.width)];
+            console.log(curGrid);
+            if (curGrid === 1) {
+                this.player1.addPiece(x, y);
+            } else if (curGrid === 2) {
+                this.player2.addPiece(x, y);
+            } else if (curGrid === 3) {
+                this.blocks.addChild(new Block(this, x, y));
+            };
+        }
+    }
+};
+
+var GridMovement = function (state, width, height, tWidth, tHeight, marginL, marginR, marginT, marginB) {
 
     this.state = state;
     this.tileWidth = tWidth; //width in pixels of a tile.
     this.tileHeight = tHeight; //height in pixels of a tile.
     this.width = width; //width in pixels of the entire tilemap.
     this.height = height; //height in pixels of the entire tilemap.
-    this.margin = margin; //margin in pixels around the edge of the arena which is not playable.
+    this.marginL = marginL; //margin in pixels around the edge of the arena which is not playable.
+    this.marginR = marginR;
+    this.marginT = marginT;
+    this.marginB = marginB;
 
     /*Returns a GridSquare corrisponding to the pixel position given to the method.  If either positions are outside the playable area returns null.
     @x 'x' position, in pixels, of the square you want to get.
@@ -70,11 +101,11 @@ var GridMovement = function (state, width, height, tWidth, tHeight, margin) {
     @return GridSquare at given position or null.
     */
     GridMovement.prototype.getGridSquare = function (x, y) {
-        if (x > width - margin || y > height - margin || x < margin || y < margin) {
+        if (x > width - marginR || y > height - marginB || x < marginL || y < marginT) {
             return null;
         } else {
-            var xPos = Math.floor((x - margin) / tWidth);
-            var yPos = Math.floor((y - margin) / tHeight);
+            var xPos = Math.floor((x - marginL) / tWidth);
+            var yPos = Math.floor((y - marginT) / tHeight);
             return new GridSquare(xPos, yPos);
         }
     };
@@ -84,7 +115,7 @@ var GridMovement = function (state, width, height, tWidth, tHeight, margin) {
     @return 'x' pixel position of the top right corner of the square.
     */
     GridMovement.prototype.getPixelX = function (x) {
-        return x * tWidth + margin;
+        return x * tWidth + marginL;
     };
 
     /*Given a 'y' co-ordinate on the grid returns the pixel position of that sqaure.
@@ -92,7 +123,7 @@ var GridMovement = function (state, width, height, tWidth, tHeight, margin) {
     @return 'y' pixel position of the top right corner of the square.
     */
     GridMovement.prototype.getPixelY = function (y) {
-        return y * tHeight + margin;
+        return y * tHeight + marginT;
     };
 
     /*Given a GridSquare will return the Object that exsists in the square.
@@ -128,7 +159,7 @@ var GridMovement = function (state, width, height, tWidth, tHeight, margin) {
     };
 
     GridMovement.prototype.validIndex = function (x, y) {
-        return x >= 0 && x < (width - margin * 2) / tWidth && y >= 0 && y < (height - margin * 2) / tHeight;
+        return x >= 0 && x < (width - (marginL + marginR)) / tWidth && y >= 0 && y < (height - (marginT + marginB)) / tHeight;
     };
 };
 
@@ -237,6 +268,8 @@ var Player = function (state, name) {
 
     this.actionPoints = 5;
 
+    this.mouseDown = false;
+
     Player.prototype.update = function () {
         this.pieces.update();
         if (this.actionPoints === 0) {
@@ -247,10 +280,9 @@ var Player = function (state, name) {
     };
 
     Player.prototype.mouseHandler = function () {
-        if (state.mouse.justPressed(20)) {
-            var selectedSquare = GridMovement.prototype.getGridSquare(state.mouse.x, state.mouse.y);
+        if (state.mouse.isDown && !this.mouseDown) {
+            var selectedSquare = GridMovement.prototype.getGridSquare(state.mouse.x / state.arenaScale, state.mouse.y / state.arenaScale);
 
-            console.log(selectedSquare.x + ' : ' + selectedSquare.y);
             if (selectedSquare !== null) {
                 var unit = GridMovement.prototype.getObjectAt(selectedSquare);
                 console.log(unit);
@@ -265,7 +297,7 @@ var Player = function (state, name) {
                     }
                 } else if (unit === null && this.selectedPiece !== null) { //if the square is empty and a piece is currently selected.
                     if (this.selectedPiece.moveToSquare(selectedSquare)) this.actionPoints = this.actionPoints - 1; //move the piece to that square.
-                } else if (unit instanceof Block) {
+                } else if (unit instanceof Block && this.selectedPiece !== null) {
                     if (this.selectedPiece.gridPosition.inRange(unit.gridPosition, 1)) { //if the currently selected piec is next to the block
                         if (unit.pushBlock(this.selectedPiece.gridPosition.getDirection(unit.gridPosition))) { //find the direction of the block in relation to the piece and move the block in that direction
                             if (this.selectedPiece.moveToSquare(selectedSquare)) this.actionPoints = this.actionPoints - 1; //move the piece into the vacated square.
@@ -273,8 +305,11 @@ var Player = function (state, name) {
                     }
 
                 }
-                console.log(this.actionPoints)
+                console.log(this.actionPoints);
             }
+            this.mouseDown = true;
+        } else if (state.mouse.isUp && this.mouseDown) {
+            this.mouseDown = false;
         }
     };
 
@@ -297,7 +332,26 @@ var Piece = function (state, player, x, y) {
 
     this.player = player;
 
-    Kiwi.GameObjects.Sprite.call(this, state, state.textures['piece' + this.player.name], this.gridPosition.pixelX, this.gridPosition.pixelY);
+    Kiwi.GameObjects.Sprite.call(this, state, state.textures['piece' + player.name], this.gridPosition.pixelX, this.gridPosition.pixelY);
+
+    this.animation.add("n", [3], 0.1, false);
+    this.animation.add("e", [1], 0.1, false);
+    this.animation.add("w", [7], 0.1, false);
+    this.animation.add("s", [5], 0.1, false);
+    this.animation.add("n s", [2], 0.1, false);
+    this.animation.add("e s", [0], 0.1, false);
+    this.animation.add("w s", [6], 0.1, false);
+    this.animation.add("s s", [4], 0.1, false);
+
+    this.facing = 'n';
+
+    if (this.player.name === '1') {
+        this.facing = 'e';
+        this.animation.play('e');
+    } else {
+        this.facing = 'w';
+        this.animation.play('w');
+    }
 
     this.isSelected = false; //whether or not the Piece is selected.
 
@@ -308,12 +362,12 @@ var Piece = function (state, player, x, y) {
     /*Sets the Piece to selected updating its texture.*/
     Piece.prototype.selectPiece = function () {
         this.isSelected = true;
-        this.atlas = this.state.textures['piece' + this.player.name + 's'];
+        this.animation.play(this.facing + ' s');
     };
     /*Sets the Piece to unselected updating its texture.*/
     Piece.prototype.unselectPiece = function () {
         this.isSelected = false;
-        this.atlas = this.state.textures['piece' + this.player.name];
+        this.animation.play(this.facing);
     };
 
     /*Given a GridSquare moves the Piece to that grid position.
@@ -323,6 +377,8 @@ var Piece = function (state, player, x, y) {
         if (this.gridPosition.inRange(square, 1)) {
             this.x = square.pixelX;
             this.y = square.pixelY;
+            this.facing = this.gridPosition.getDirection(square);
+            this.animation.play(this.facing + ' s');
             this.gridPosition = square;
             return true;
         }

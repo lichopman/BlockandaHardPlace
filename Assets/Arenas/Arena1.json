@@ -1,39 +1,44 @@
-{ "height":7,
- "layers":[
+{
+    "height": 7,
+    "layers": [
         {
-         "data":[4, 5, 5, 5, 5, 5, 5, 5, 6, 12, 1, 2, 2, 2, 2, 2, 3, 14, 12, 9, 10, 10, 10, 10, 10, 11, 14, 12, 9, 10, 10, 10, 10, 10, 11, 14, 12, 9, 10, 10, 10, 10, 10, 11, 14, 12, 17, 18, 18, 18, 18, 18, 19, 14, 20, 21, 21, 21, 21, 21, 21, 21, 22],
-         "height":7,
-         "name":"Tile Layer 1",
-         "opacity":1,
-         "type":"tilelayer",
-         "visible":true,
-         "width":9,
-         "x":0,
-         "y":0
+            "data": [4, 5, 5, 5, 5, 5, 5, 5, 6,
+                     12, 1, 2, 2, 2, 2, 2, 3, 14,
+                     12, 9, 10, 10, 10, 10, 10, 11, 14,
+                     12, 9, 10, 10, 10, 10, 10, 11, 14,
+                     12, 9, 10, 10, 10, 10, 10, 11, 14,
+                     12, 17, 18, 18, 18, 18, 18, 19, 14,
+                     20, 21, 21, 21, 21, 21, 21, 21, 22],
+            "height": 7,
+            "name": "Tile Layer 1",
+            "opacity": 1,
+            "type": "tilelayer",
+            "visible": true,
+            "width": 9,
+            "x": 0,
+            "y": 0
         }],
- "orientation":"orthogonal",
- "properties":
-    {
+    "orientation": "orthogonal",
+    "properties": {
 
     },
- "tileheight":32,
- "tilesets":[
+    "tileheight": 32,
+    "tilesets": [
         {
-         "firstgid":1,
-         "image":"..\/Images\/Tilesets\/Background.png",
-         "imageheight":192,
-         "imagewidth":256,
-         "margin":0,
-         "name":"background",
-         "properties":
-            {
+            "firstgid": 1,
+            "image": "..\/Images\/Tilesets\/Background.png",
+            "imageheight": 192,
+            "imagewidth": 256,
+            "margin": 0,
+            "name": "background",
+            "properties": {
 
             },
-         "spacing":0,
-         "tileheight":32,
-         "tilewidth":32
+            "spacing": 0,
+            "tileheight": 32,
+            "tilewidth": 32
         }],
- "tilewidth":32,
- "version":1,
- "width":9
+    "tilewidth": 32,
+    "version": 1,
+    "width": 9
 }
